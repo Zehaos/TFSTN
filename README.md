@@ -1,6 +1,10 @@
 # TFSTN
 Pure Tensorflow Implementation of Spatial Transformer Networks. TF API 1.0. Good visualization. Easy to be intergrated.
 
+<div align="center">
+  <img src="http://i.imgur.com/gfqLV3f.png"><br><br>
+</div>
+
 TODO:
 - [x] Train
 - [ ] Visualization
