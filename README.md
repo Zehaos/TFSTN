@@ -16,7 +16,7 @@ Pure Tensorflow Implementation of Spatial Transformer Networks. TF API 1.0. Good
 </div>
 
 TODO:
-- [x] Train
+- [ ] Train
 - [x] Visualization
 - [ ] More base net
 - [ ] More dataset
