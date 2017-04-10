@@ -83,9 +83,10 @@ def train():
         model = STN(FLAGS.gpu)
 
         saver = tf.train.Saver(tf.global_variables())
-
+        tfConfig = tf.ConfigProto(allow_soft_placement=True)
+        tfConfig.gpu_options.allow_growth = True
         init = tf.global_variables_initializer()
-        sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+        sess = tf.Session(config=tfConfig)
         sess.run(init)
 
         initial_step = 0
