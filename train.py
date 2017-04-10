@@ -11,6 +11,7 @@ import time
 import numpy as np
 import tensorflow as tf
 from stn import STN
+from params import Params
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -78,9 +79,9 @@ def train():
     # load data
     print("loading MNIST dataset...")
     trainData, validData, testData = loadMNIST("data/MNIST.npz")
-    batch_size = 50
+    params = Params()
     with tf.Graph().as_default():
-        model = STN(FLAGS.gpu)
+        model = STN(FLAGS.gpu, params)
 
         saver = tf.train.Saver(tf.global_variables())
         tfConfig = tf.ConfigProto(allow_soft_placement=True)
@@ -106,10 +107,10 @@ def train():
             start_time = time.time()
 
             # generate training data
-            rand_idx = np.random.randint(len(trainData["image"]), size=batch_size)
+            rand_idx = np.random.randint(len(trainData["image"]), size=params.batchSize)
             image_per_batch = trainData["image"][rand_idx]
             label_per_batch = trainData["label"][rand_idx]
-            image_per_batch = np.reshape(image_per_batch, [batch_size, 28, 28, 1])
+            image_per_batch = np.reshape(image_per_batch, [params.batchSize, params.H, params.W, 1])
             feed_dict = {
                 model.image_input: image_per_batch,
                 model.labels: label_per_batch,
@@ -129,7 +130,7 @@ def train():
             duration = time.time() - start_time
 
             if step % 10 == 0:
-                num_images_per_step = batch_size
+                num_images_per_step = params.batchSize
                 images_per_sec = num_images_per_step / duration
                 sec_per_batch = float(duration)
                 format_str = ('%s: step %d, loss = %.2f (%.1f images/sec; %.3f '
