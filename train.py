@@ -53,27 +53,6 @@ def loadMNIST(fname):
     return trainData, validData, testData
 
 
-# generate training batch
-def genPerturbations(params):
-    with tf.variable_scope("genPerturbations"):
-        X = np.tile(params.canon4pts[:, 0], [params.batchSize, 1])
-        Y = np.tile(params.canon4pts[:, 1], [params.batchSize, 1])
-        dX = tf.random_normal([params.batchSize, 4]) * params.warpScale["pert"] \
-             + tf.random_normal([params.batchSize, 1]) * params.warpScale["trans"]
-        dY = tf.random_normal([params.batchSize, 4]) * params.warpScale["pert"] \
-             + tf.random_normal([params.batchSize, 1]) * params.warpScale["trans"]
-        O = np.zeros([params.batchSize, 4], dtype=np.float32)
-        I = np.ones([params.batchSize, 4], dtype=np.float32)
-        # fit warp parameters to generated displacements
-        A = tf.concat([tf.stack([X, Y, I, O, O, O, -X * (X + dX), -Y * (X + dX)], axis=-1),
-                       tf.stack([O, O, O, X, Y, I, -X * (Y + dY), -Y * (Y + dY)], axis=-1)], 1)
-        b = tf.expand_dims(tf.concat([X + dX, Y + dY], 1), -1)
-        dpBatch = tf.matrix_solve_ls(A, b)
-        dpBatch -= tf.to_float(tf.reshape([1, 0, 0, 0, 1, 0, 0, 0], [1, 8, 1]))
-        dpBatch = tf.reduce_sum(dpBatch, reduction_indices=-1)
-    return dpBatch
-
-
 def train():
     """Train STN"""
     # load data

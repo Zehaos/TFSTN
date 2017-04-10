@@ -136,8 +136,6 @@ class ModelSkeleton:
         with tf.variable_scope(layer_name) as scope:
             if channels is None:
                 channels = inputs.get_shape()[3]
-            # re-order the caffe kernel with shape [out, in, h, w] -> tf kernel with
-            # shape [h, w, in, out]
             if xavier:
                 kernel_init = tf.contrib.layers.xavier_initializer_conv2d()
                 bias_init = tf.constant_initializer(0.0)

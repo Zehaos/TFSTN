@@ -16,41 +16,46 @@ class STN(ModelSkeleton):
         """NN architecture."""
         stn1 = self._stn_module('stn1', self.image_input)
 
-        conv2 = self._conv_layer('conv2', stn1, filters=30, size=1, stride=1,
-                                 padding='VALID', channels=1)
-        fc3 = self._fc_layer('fc3', conv2, 10, flatten=True, xavier=True)
+        conv2 = self._conv_layer('conv2', stn1, filters=3, size=9, stride=1,
+                                 padding='VALID', channels=1, stddev=0.03)
+        fc3 = self._fc_layer('fc3', conv2, 10, flatten=True, xavier=True, relu=False,  stddev=0.03)
         self.preds = fc3
 
     def _stn_module(self, layer_name, images):
-        tf.summary.image('image_input', images, max_outputs=self.params.batchSize)
+        with tf.variable_scope('gen_training_imgs') as scope:
+            perturbations = self._gen_perturbations(self.params)
+            warp_mtx = vec2mtx(perturbations, self.params)
+            images = self._warp_op(images, warp_mtx)
+            #images = tf.Print(images, [tf.shape(images)])
+            #TODO:fix hard code
+            images = tf.reshape(images, [200, 28, 28, 1])
+
+        tf.summary.image('image_input', images, max_outputs=10)
 
         conv1 = self._conv_layer(
-            layer_name + '/conv1', images, filters=4, size=1, stride=1,
-            padding='VALID')
+            layer_name + '/conv1', images, filters=4, size=7, stride=2,
+            padding='VALID', stddev=0.01)
         conv2 = self._conv_layer(
-            layer_name + '/conv2', conv1, filters=8, size=1, stride=1,
-            padding='VALID')
+            layer_name + '/conv2', conv1, filters=8, size=5, stride=2,
+            padding='VALID', stddev=0.01)
         pool2 = self._pooling_layer(
             layer_name + '/pool2', conv2, size=2, stride=2, padding='VALID'
         )
         fc3 = self._fc_layer(
-            layer_name + '/fc3', pool2, 100, flatten=True)
+            layer_name + '/fc3', pool2, 48, flatten=True, stddev=0.01)
         fc4 = self._fc_layer(
-            layer_name + '/fc4', fc3, 8, flatten=False, relu=False)
+            layer_name + '/fc4', fc3, 8, flatten=False, relu=False, stddev=0.01)
         #fc4 = tf.Print(fc4, [tf.split(fc4, self.params.batchSize, axis=0)[0][0]])
         with tf.variable_scope(layer_name+'/ImWarp') as scope:
-            warp_mtx = vec2mtx(fc4)
+            warp_mtx = vec2mtx(fc4, self.params)
             images_warped = self._warp_op(images, warp_mtx)
-            tf.summary.image(layer_name + 'image_warped', images_warped, max_outputs=self.params.batchSize)
+            tf.summary.image(layer_name + 'image_warped', images_warped, max_outputs=10)
         return images_warped
 
     def _warp_op(self, images, warp_mtx):
         H, W = self.params.H, self.params.W
-        canon4pts = np.array([[-1, -1], [-1, 1], [1, 1], [1, -1]], dtype=np.float32)
-        img4pts = np.array([[0, 0], [0, H - 1], [W - 1, H - 1], [W - 1, 0]], dtype=np.float32)
-        warp_gt_mtx = fit_warp_mtx(canon4pts, img4pts)
+        warp_gt_mtx = self.params.warpGTmtrx
 
-        #batch_size = tf.shape(images)[0]
         warpGTmtrxBatch = tf.tile(tf.expand_dims(warp_gt_mtx, 0), [self.params.batchSize, 1, 1])
         transMtrxBatch = tf.matmul(warpGTmtrxBatch, warp_mtx)
         # warp the canonical coordinates
@@ -95,6 +100,31 @@ class STN(ModelSkeleton):
         ImWarpBatch = tf.identity(ImWarpBatch)
 
         return ImWarpBatch
+
+    # generate jitter
+    def _gen_perturbations(self, params):
+        X = np.tile(params.canon4pts[:, 0], [params.batchSize, 1])
+        Y = np.tile(params.canon4pts[:, 1], [params.batchSize, 1])
+        dX = tf.random_normal([params.batchSize, 4]) * params.warpScale["pert"] \
+             + tf.random_normal([params.batchSize, 1]) * params.warpScale["trans"]
+        dY = tf.random_normal([params.batchSize, 4]) * params.warpScale["pert"] \
+             + tf.random_normal([params.batchSize, 1]) * params.warpScale["trans"]
+        O = np.zeros([params.batchSize, 4], dtype=np.float32)
+        I = np.ones([params.batchSize, 4], dtype=np.float32)
+        # fit warp parameters to generated displacements
+        if params.warpType == "affine":
+            J = np.concatenate([np.stack([X, Y, I, O, O, O], axis=-1),
+                                np.stack([O, O, O, X, Y, I], axis=-1)], axis=1)
+            dXY = tf.expand_dims(tf.concat(1, [dX, dY]), -1)
+            dpBatch = tf.matrix_solve_ls(J, dXY)
+        elif params.warpType == "homography":
+            A = tf.concat([tf.stack([X, Y, I, O, O, O, -X * (X + dX), -Y * (X + dX)], axis=-1),
+                           tf.stack([O, O, O, X, Y, I, -X * (Y + dY), -Y * (Y + dY)], axis=-1)], 1)
+            b = tf.expand_dims(tf.concat([X + dX, Y + dY], 1), -1)
+            dpBatch = tf.matrix_solve_ls(A, b)
+            dpBatch -= tf.to_float(tf.reshape([1, 0, 0, 0, 1, 0, 0, 0], [1, 8, 1]))
+        dpBatch = tf.reduce_sum(dpBatch, reduction_indices=-1)
+        return dpBatch
 
 
 

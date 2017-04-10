@@ -18,8 +18,8 @@ Pure Tensorflow Implementation of Spatial Transformer Networks. TF API 1.0. Good
 TODO:
 - [x] Train
 - [x] Visualization
-- [ ] More base net
-- [ ] More dataset
+- [x] Transform input images
+- [ ] Different learning between stn&cnn
 - [ ] Intergrate into face recognition task
 
 # Reference
