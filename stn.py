@@ -37,7 +37,7 @@ class STN(ModelSkeleton):
             layer_name + '/fc3', pool2, 100, flatten=True)
         fc4 = self._fc_layer(
             layer_name + '/fc4', fc3, 8, flatten=False)
-        with tf.variable_scope('ImWarp') as scope:
+        with tf.variable_scope(layer_name+'/ImWarp') as scope:
             warp_mtx = vec2mtx(fc4)
             images_warped = self._warp_op(images, warp_mtx)
         tf.summary.image('image_warped', images_warped, max_outputs=50)
