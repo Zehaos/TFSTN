@@ -5,9 +5,19 @@ Pure Tensorflow Implementation of Spatial Transformer Networks. TF API 1.0. Good
   <img src="http://i.imgur.com/gfqLV3f.png"><br><br>
 </div>
 
+# Graph
+<div align="center">
+<img src="https://github.com/Zehaos/TFSTN/blob/master/graph.png"><br><br>
+</div>
+
+# Result
+<div align="center">
+<img src="https://github.com/Zehaos/TFSTN/blob/master/img_summary.png"><br><br>
+</div>
+
 TODO:
 - [x] Train
-- [ ] Visualization
+- [x] Visualization
 - [ ] More base net
 - [ ] More dataset
 - [ ] Intergrate into face recognition task
