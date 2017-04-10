@@ -46,16 +46,17 @@ def _variable_with_weight_decay(name, shape, wd, initializer, trainable=True):
 class ModelSkeleton:
     """Base class of NN detection models."""
 
-    def __init__(self, batch_size, img_h, img_w):
+    def __init__(self, params):
         self.image_input = tf.placeholder(
-            tf.float32, [batch_size, img_h, img_w, 1],
+            tf.float32, [params.batchSize, params.H, params.W, 1],
             name='image_input'
         )
         self.labels = tf.placeholder(
-            tf.float32, [batch_size, 10], name='labels'
+            tf.float32, [params.batchSize, 10], name='labels'
         )
         # model parameters
         self.model_params = []
+        self.params = params
 
     def _add_forward_graph(self):
         """NN architecture specification."""
@@ -106,12 +107,12 @@ class ModelSkeleton:
     def _add_viz_graph(self):
         """Define the visualization operation."""
         self.image_to_show = tf.placeholder(
-            tf.float32, [None, 28, 28, 1],
+            tf.float32, [None, self.params.H, self.params.W, 1],
             name='image_input'
         )
         self.viz_op = tf.summary.image('image_input',
                                        self.image_to_show, collections='image_summary',
-                                       max_outputs=50)
+                                       max_outputs=self.params.batchSize)
 
     def _conv_layer(
             self, layer_name, inputs, filters, size, stride, channels=None, padding='SAME',

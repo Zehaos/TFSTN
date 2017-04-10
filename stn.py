@@ -6,9 +6,8 @@ from utils import fit_warp_mtx, vec2mtx
 
 class STN(ModelSkeleton):
     def __init__(self, gpu_id, params):
-        self.params = params
         with tf.device('/gpu:{}'.format(gpu_id)):
-            ModelSkeleton.__init__(self, params.batchSize, params.W, params.H)
+            ModelSkeleton.__init__(self, params)
             self._add_forward_graph()
             self._add_loss_graph()
             self._add_train_graph()
@@ -46,7 +45,7 @@ class STN(ModelSkeleton):
         return images_warped
 
     def _warp_op(self, images, warp_mtx):
-        H, W = 28, 28
+        H, W = self.params.H, self.params.W
         canon4pts = np.array([[-1, -1], [-1, 1], [1, 1], [1, -1]], dtype=np.float32)
         img4pts = np.array([[0, 0], [0, H - 1], [W - 1, H - 1], [W - 1, 0]], dtype=np.float32)
         warp_gt_mtx = fit_warp_mtx(canon4pts, img4pts)
