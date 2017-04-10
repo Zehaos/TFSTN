@@ -11,7 +11,6 @@ import time
 import numpy as np
 import tensorflow as tf
 from stn import STN
-from utils import fit_warp_mtx, vec2mtx
 
 FLAGS = tf.app.flags.FLAGS
 
@@ -119,9 +118,7 @@ def train():
                     model.train_op, model.loss, summary_op
                 ]
                 _, loss_value, summary_str = sess.run(op_list, feed_dict=feed_dict)
-
                 summary_writer.add_summary(summary_str, step)
-
                 print('loss: {}'.format(loss_value))
             else:
                 _, loss_value = sess.run([model.train_op, model.loss],

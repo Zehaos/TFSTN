@@ -15,7 +15,9 @@ class STN(ModelSkeleton):
     def _add_forward_graph(self):
         """NN architecture."""
         stn1 = self._stn_module('stn1', self.image_input)
-        print stn1
+        tf.summary.image('image_input',
+                         self.image_input,
+                         max_outputs=50)
         conv2 = self._conv_layer('conv2', stn1, filters=30, size=1, stride=1,
                                  padding='VALID', channels=1)
         fc3 = self._fc_layer('fc3', conv2, 10, flatten=True, xavier=True)
@@ -39,6 +41,9 @@ class STN(ModelSkeleton):
 
         warp_mtx = vec2mtx(fc4)
         images_warped = self._warp_op(images, warp_mtx)
+        tf.summary.image('image_warped',
+                         images_warped,
+                         max_outputs=50)
         return images_warped
 
     def _warp_op(self, images, warp_mtx):
@@ -90,5 +95,6 @@ class STN(ModelSkeleton):
             ImWarpBatch = ImUL + ImUR + ImBL + ImBR
             ImWarpBatch = tf.identity(ImWarpBatch)
         return ImWarpBatch
+
 
 

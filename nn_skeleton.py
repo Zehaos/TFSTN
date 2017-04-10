@@ -1,5 +1,5 @@
 import tensorflow as tf
-
+import params
 
 def _variable_on_device(name, shape, initializer, trainable=True):
     """Helper to create a Variable.
@@ -104,7 +104,14 @@ class ModelSkeleton:
             self.train_op = tf.no_op(name='train')
 
     def _add_viz_graph(self):
-        raise NotImplementedError
+        """Define the visualization operation."""
+        self.image_to_show = tf.placeholder(
+            tf.float32, [None, 28, 28, 1],
+            name='image_input'
+        )
+        self.viz_op = tf.summary.image('image_input',
+                                       self.image_to_show, collections='image_summary',
+                                       max_outputs=50)
 
     def _conv_layer(
             self, layer_name, inputs, filters, size, stride, channels=None, padding='SAME',
