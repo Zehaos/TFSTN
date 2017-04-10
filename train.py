@@ -28,6 +28,7 @@ tf.app.flags.DEFINE_integer('checkpoint_step', 1000,
                             """Number of steps to save summary.""")
 tf.app.flags.DEFINE_string('gpu', '0', """gpu id.""")
 
+#TODO: remove hard code
 
 # load MNIST data
 def loadMNIST(fname):
