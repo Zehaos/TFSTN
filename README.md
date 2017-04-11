@@ -17,8 +17,14 @@ Pure Tensorflow Implementation of Spatial Transformer Networks. TF API 1.0. Good
 
 ## Usage
 
+### Train
 ```
 python train.py
+```
+
+### Visualize
+```
+tensorboard --logdir=/tmp/zehao/logs/STN/train
 ```
 
 ## TODO
