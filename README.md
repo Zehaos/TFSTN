@@ -5,24 +5,30 @@ Pure Tensorflow Implementation of Spatial Transformer Networks. TF API 1.0. Good
   <img src="http://i.imgur.com/gfqLV3f.png"><br><br>
 </div>
 
-# Graph
+## Graph
 <div align="center">
 <img src="https://github.com/Zehaos/TFSTN/blob/master/graph.png"><br><br>
 </div>
 
-# Result
+## Result
 <div align="center">
 <img src="https://github.com/Zehaos/TFSTN/blob/master/img_summary.png"><br><br>
 </div>
 
-TODO:
+## Usage
+
+```
+python train.py
+```
+
+## TODO
 - [x] Train
 - [x] Visualization
 - [x] Transform input images
 - [ ] Different learning between stn&cnn
 - [ ] Intergrate into face recognition task
 
-# Reference
+## Reference
 [Spatial Transformer Networks](https://arxiv.org/pdf/1506.02025.pdf)
 
 [IC-STN](https://github.com/ericlin79119/IC-STN)
