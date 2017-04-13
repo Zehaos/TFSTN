@@ -18,10 +18,10 @@ FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('dataset', 'MNIST',
                            """Currently only support MNIST dataset.""")
 tf.app.flags.DEFINE_string('data_path', '', """Root directory of data""")
-tf.app.flags.DEFINE_string('train_dir', '/tmp/zehao/logs/STN/train',
+tf.app.flags.DEFINE_string('train_dir', '/tmp/zehao/logs/STN/train0',
                            """Directory where to write event logs """
                            """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 1000000,
+tf.app.flags.DEFINE_integer('max_steps', 100000,
                             """Maximum number of batches to run.""")
 tf.app.flags.DEFINE_integer('summary_step', 10,
                             """Number of steps to save summary.""")

@@ -116,7 +116,7 @@ class STN(ModelSkeleton):
             J = np.concatenate([np.stack([X, Y, I, O, O, O], axis=-1),
                                 np.stack([O, O, O, X, Y, I], axis=-1)], axis=1)
             dXY = tf.expand_dims(tf.concat(1, [dX, dY]), -1)
-            dpBatch = tf.matrix_solve_ls(J, dXY)
+            dpBatch = tf.matrix_solve_ls(J, dXY)  # J*Output=dXY
         elif params.warpType == "homography":
             A = tf.concat([tf.stack([X, Y, I, O, O, O, -X * (X + dX), -Y * (X + dX)], axis=-1),
                            tf.stack([O, O, O, X, Y, I, -X * (Y + dY), -Y * (Y + dY)], axis=-1)], 1)
