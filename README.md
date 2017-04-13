@@ -31,7 +31,7 @@ tensorboard --logdir=/tmp/zehao/logs/STN/train
 - [x] Train
 - [x] Visualization
 - [x] Transform input images
-- [ ] Different learning between stn&cnn
+- [x] Different learning between stn&cnn
 - [ ] Intergrate into face recognition task
 
 ## Reference
