@@ -1,15 +1,15 @@
 # TFSTN
 This is a pure tensorflow implementation of Spatial Transformer Networks.
 
+<div align="center">
+  <img src="http://i.imgur.com/gfqLV3f.png"><br><br>
+</div>
+
 ## Features:
 - TF API 1.0.0
 - Good visualization.
 - Easy to be intergrated.
 - Tfrecord input pipeline
-
-<div align="center">
-  <img src="http://i.imgur.com/gfqLV3f.png"><br><br>
-</div>
 
 ## Graph
 <div align="center">
