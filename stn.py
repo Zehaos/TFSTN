@@ -3,14 +3,39 @@ import tensorflow as tf
 import numpy as np
 from utils import fit_warp_mtx, vec2mtx
 
-
 class STN(ModelSkeleton):
     def __init__(self, gpu_id, params):
         with tf.device('/gpu:{}'.format(gpu_id)):
             ModelSkeleton.__init__(self, params)
+            self._add_datagen_graph()
             self._add_forward_graph()
             self._add_loss_graph()
             self._add_train_graph()
+
+    def _add_datagen_graph(self):
+        with tf.variable_scope('gen_training_imgs') as scope:
+            # init tfrecord reader
+            with tf.variable_scope('gen_training_imgs') as scope:
+                self.reader = tf.TFRecordReader()
+                self.filename_queue = tf.train.string_input_producer([self.params.tfrecordfile],
+                                                                     shuffle=True)
+            _, serialized = self.reader.read(self.filename_queue)
+            features = tf.parse_single_example(
+                serialized,
+                features={
+                    'image_raw': tf.FixedLenFeature([], tf.string),
+                    'pixels': tf.FixedLenFeature([], tf.int64),
+                    'label': tf.FixedLenFeature([], tf.int64)
+                }
+            )
+
+            image = tf.reshape(tf.decode_raw(features['image_raw'], tf.uint8), [28,28,1])
+            image = tf.cast(image, tf.float32)
+            label = tf.one_hot(features['label'], 10)
+            self.image_input, self.labels = tf.train.shuffle_batch(
+                [image, label], batch_size=self.params.batchSize, capacity=10000+3*self.params.batchSize,
+                min_after_dequeue=10000
+            )
 
     def _add_forward_graph(self):
         """NN architecture."""
@@ -22,7 +47,7 @@ class STN(ModelSkeleton):
         self.preds = fc3
 
     def _stn_module(self, layer_name, images):
-        with tf.variable_scope('gen_training_imgs') as scope:
+        with tf.variable_scope('trns_training_imgs') as scope:
             perturbations = self._gen_perturbations(self.params)
             warp_mtx = vec2mtx(perturbations, self.params)
             images = self._warp_op(images, warp_mtx)

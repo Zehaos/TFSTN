@@ -12,3 +12,4 @@ class Params:
         self.canon4pts = np.array([[-1, -1], [-1, 1], [1, 1], [1, -1]], dtype=np.float32)
         self.Im4pts = np.array([[0, 0], [0, self.H - 1], [self.W - 1, self.H - 1], [self.W - 1, 0]], dtype=np.float32)
         self.warpGTmtrx = fit_warp_mtx(self.canon4pts, self.Im4pts, "affine")
+        self.tfrecordfile = '/home/zehao/PycharmProjects/learn-tensorflow/mnist.tfrecords'

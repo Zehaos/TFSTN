@@ -1,5 +1,11 @@
 # TFSTN
-Pure Tensorflow Implementation of Spatial Transformer Networks. TF API 1.0.0 Good visualization. Easy to be intergrated.
+This is a pure tensorflow implementation of Spatial Transformer Networks.
+
+## Features:
+- TF API 1.0.0
+- Good visualization.
+- Easy to be intergrated.
+- Tfrecord input pipeline
 
 <div align="center">
   <img src="http://i.imgur.com/gfqLV3f.png"><br><br>
@@ -17,6 +23,9 @@ Pure Tensorflow Implementation of Spatial Transformer Networks. TF API 1.0.0 Goo
 
 ## Usage
 
+### Make mnist tfrecord
+[script](https://github.com/Zehaos/learn-tensorflow/blob/master/make_tfrecord.py)
+
 ### Train
 ```
 python train.py
@@ -32,6 +41,7 @@ tensorboard --logdir=/tmp/zehao/logs/STN/train
 - [x] Visualization
 - [x] Transform input images
 - [x] Different learning between stn&cnn
+- [x] Tfrecord pipeline
 - [ ] Intergrate into face recognition task
 
 ## Reference

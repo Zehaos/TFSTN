@@ -29,35 +29,10 @@ tf.app.flags.DEFINE_integer('checkpoint_step', 1000,
                             """Number of steps to save summary.""")
 tf.app.flags.DEFINE_string('gpu', '0', """gpu id.""")
 
-#TODO: remove hard code
-
-# load MNIST data
-def loadMNIST(fname):
-    if not os.path.exists(fname):
-        # download and preprocess MNIST dataset
-        from tensorflow.examples.tutorials.mnist import input_data
-        mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-        trainData, validData, testData = {}, {}, {}
-        trainData["image"] = mnist.train.images.reshape([-1, 28, 28]).astype(np.float32)
-        validData["image"] = mnist.validation.images.reshape([-1, 28, 28]).astype(np.float32)
-        testData["image"] = mnist.test.images.reshape([-1, 28, 28]).astype(np.float32)
-        trainData["label"] = mnist.train.labels.astype(np.float32)
-        validData["label"] = mnist.validation.labels.astype(np.float32)
-        testData["label"] = mnist.test.labels.astype(np.float32)
-        os.makedirs(os.path.dirname(fname))
-        np.savez(fname, train=trainData, valid=validData, test=testData)
-    MNIST = np.load(fname)
-    trainData = MNIST["train"].item()
-    validData = MNIST["valid"].item()
-    testData = MNIST["test"].item()
-    return trainData, validData, testData
-
 
 def train():
     """Train STN"""
-    # load data
-    print("loading MNIST dataset...")
-    trainData, validData, testData = loadMNIST("data/MNIST.npz")
+
     params = Params()
     with tf.Graph().as_default():
         model = STN(FLAGS.gpu, params)
@@ -83,39 +58,19 @@ def train():
         summary_op = tf.summary.merge_all()
 
         for step in xrange(initial_step, FLAGS.max_steps):
-            start_time = time.time()
-
-            # generate training data
-            rand_idx = np.random.randint(len(trainData["image"]), size=params.batchSize)
-            image_per_batch = trainData["image"][rand_idx]
-            label_per_batch = trainData["label"][rand_idx]
-            image_per_batch = np.reshape(image_per_batch, [params.batchSize, params.H, params.W, 1])
-            feed_dict = {
-                model.image_input: image_per_batch,
-                model.labels: label_per_batch,
-            }
-
             if step % FLAGS.summary_step == 0:
                 op_list = [
                     model.train_op, model.loss, summary_op
                 ]
-                _, loss_value, summary_str = sess.run(op_list, feed_dict=feed_dict)
+                _, loss_value, summary_str = sess.run(op_list)
                 summary_writer.add_summary(summary_str, step)
                 print('loss: {}'.format(loss_value))
             else:
-                _, loss_value = sess.run([model.train_op, model.loss],
-                                         feed_dict=feed_dict)
-
-            duration = time.time() - start_time
+                _, loss_value = sess.run([model.train_op, model.loss])
 
             if step % 10 == 0:
-                num_images_per_step = params.batchSize
-                images_per_sec = num_images_per_step / duration
-                sec_per_batch = float(duration)
-                format_str = ('%s: step %d, loss = %.2f (%.1f images/sec; %.3f '
-                              'sec/batch)')
-                print(format_str % (datetime.now(), step, loss_value,
-                                    images_per_sec, sec_per_batch))
+                format_str = ('%s: step %d, loss = %.2f')
+                print(format_str % (datetime.now(), step, loss_value))
                 sys.stdout.flush()
 
             # Save the model checkpoint periodically.
@@ -126,8 +81,8 @@ def train():
 
 def main(argv=None):  # pylint: disable=unused-argument
     if tf.gfile.Exists(FLAGS.train_dir):
-        # tf.gfile.DeleteRecursively(FLAGS.train_dir)
-        pass
+        tf.gfile.DeleteRecursively(FLAGS.train_dir)
+        #pass
     else:
         tf.gfile.MakeDirs(FLAGS.train_dir)
     try:

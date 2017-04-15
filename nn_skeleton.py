@@ -47,16 +47,21 @@ class ModelSkeleton:
     """Base class of NN detection models."""
 
     def __init__(self, params):
-        self.image_input = tf.placeholder(
-            tf.float32, [params.batchSize, params.H, params.W, 1],
-            name='image_input'
-        )
-        self.labels = tf.placeholder(
-            tf.float32, [params.batchSize, 10], name='labels'
-        )
+        # self.image_input = tf.placeholder(
+        #     tf.float32, [params.batchSize, params.H, params.W, 1],
+        #     name='image_input'
+        # )
+        # self.labels = tf.placeholder(
+        #     tf.float32, [params.batchSize, 10], name='labels'
+        # )
+
         # model parameters
         self.model_params = []
         self.params = params
+
+    def _add_datagen_graph(self):
+        """Generate training data"""
+        raise NotImplementedError
 
     def _add_forward_graph(self):
         """NN architecture specification."""
@@ -76,44 +81,45 @@ class ModelSkeleton:
 
     def _add_train_graph(self):
         """Define the training operation."""
-        self.global_step = tf.Variable(0, name='global_step', trainable=False)
-        lr = tf.train.exponential_decay(0.01,
-                                        self.global_step,
-                                        10000,
-                                        0.5,
-                                        staircase=True)
+        with tf.variable_scope('training_engine') as scope:
+            self.global_step = tf.Variable(0, name='global_step', trainable=False)
+            lr = tf.train.exponential_decay(0.01,
+                                            self.global_step,
+                                            10000,
+                                            0.5,
+                                            staircase=True)
 
-        tf.summary.scalar('learning_rate', lr)
+            tf.summary.scalar('learning_rate', lr)
 
-        tr_able_vars_list = tf.trainable_variables()
-        stn_tr_able_vars = [v for v in tr_able_vars_list if "st" in v.name]
-        other_tr_able_vars = [v for v in tr_able_vars_list if "st" not in v.name]
+            tr_able_vars_list = tf.trainable_variables()
+            stn_tr_able_vars = [v for v in tr_able_vars_list if "st" in v.name]
+            other_tr_able_vars = [v for v in tr_able_vars_list if "st" not in v.name]
 
-        # set another optimizer for optimize spatial transform module variables with smaller lr
-        opt_ot = tf.train.MomentumOptimizer(learning_rate=lr, momentum=0.9)
-        opt_st = tf.train.MomentumOptimizer(learning_rate=lr*1e-2, momentum=0.9)
+            # set another optimizer for optimize spatial transform module variables with smaller lr
+            opt_ot = tf.train.MomentumOptimizer(learning_rate=lr, momentum=0.9)
+            opt_st = tf.train.MomentumOptimizer(learning_rate=lr*1e-2, momentum=0.9)
 
-        grads_vars_ot = opt_ot.compute_gradients(self.loss, other_tr_able_vars)
-        grads_vars_st = opt_st.compute_gradients(self.loss, stn_tr_able_vars)
+            grads_vars_ot = opt_ot.compute_gradients(self.loss, other_tr_able_vars)
+            grads_vars_st = opt_st.compute_gradients(self.loss, stn_tr_able_vars)
 
-        with tf.variable_scope('clip_gradient') as scope:
-            for i, (grad, var) in enumerate(grads_vars_ot):
-                grads_vars_ot[i] = (tf.clip_by_norm(grad, 1.0), var)
-            for i, (grad, var) in enumerate(grads_vars_st):
-                grads_vars_st[i] = (tf.clip_by_norm(grad, 1.0), var)
+            with tf.variable_scope('clip_gradient') as scope:
+                for i, (grad, var) in enumerate(grads_vars_ot):
+                    grads_vars_ot[i] = (tf.clip_by_norm(grad, 1.0), var)
+                for i, (grad, var) in enumerate(grads_vars_st):
+                    grads_vars_st[i] = (tf.clip_by_norm(grad, 1.0), var)
 
-        apply_ot_gradient_op = opt_ot.apply_gradients(grads_vars_ot, global_step=self.global_step)
-        apply_st_gradient_op = opt_st.apply_gradients(grads_vars_st, global_step=self.global_step)
+            apply_ot_gradient_op = opt_ot.apply_gradients(grads_vars_ot, global_step=self.global_step)
+            apply_st_gradient_op = opt_st.apply_gradients(grads_vars_st, global_step=self.global_step)
 
-        for var in tf.trainable_variables():
-            tf.summary.histogram(var.op.name, var)
+            for var in tf.trainable_variables():
+                tf.summary.histogram(var.op.name, var)
 
-        for grad, var in grads_vars_ot + grads_vars_st:
-            if grad is not None:
-                tf.summary.histogram(var.op.name + '/gradients', grad)
+            for grad, var in grads_vars_ot + grads_vars_st:
+                if grad is not None:
+                    tf.summary.histogram(var.op.name + '/gradients', grad)
 
-        with tf.control_dependencies([apply_ot_gradient_op, apply_st_gradient_op]):
-            self.train_op = tf.no_op(name='train')
+            with tf.control_dependencies([apply_ot_gradient_op, apply_st_gradient_op]):
+                self.train_op = tf.no_op(name='train')
 
     def _add_viz_graph(self):
         """Define the visualization operation."""
