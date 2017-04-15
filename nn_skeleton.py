@@ -1,5 +1,4 @@
 import tensorflow as tf
-import params
 
 def _variable_on_device(name, shape, initializer, trainable=True):
     """Helper to create a Variable.
@@ -47,14 +46,6 @@ class ModelSkeleton:
     """Base class of NN detection models."""
 
     def __init__(self, params):
-        # self.image_input = tf.placeholder(
-        #     tf.float32, [params.batchSize, params.H, params.W, 1],
-        #     name='image_input'
-        # )
-        # self.labels = tf.placeholder(
-        #     tf.float32, [params.batchSize, 10], name='labels'
-        # )
-
         # model parameters
         self.model_params = []
         self.params = params
@@ -73,7 +64,7 @@ class ModelSkeleton:
 
     def _add_loss_graph(self):
         """Define the loss operation."""
-        with tf.variable_scope('class_regression') as scope:
+        with tf.variable_scope('Softmax') as scope:
             softmax_loss = tf.nn.softmax_cross_entropy_with_logits(logits=self.preds,
                                                                   labels=self.labels)
             self.loss = tf.reduce_mean(softmax_loss)
@@ -81,7 +72,7 @@ class ModelSkeleton:
 
     def _add_train_graph(self):
         """Define the training operation."""
-        with tf.variable_scope('training_engine') as scope:
+        with tf.variable_scope('Training_engine') as scope:
             self.global_step = tf.Variable(0, name='global_step', trainable=False)
             lr = tf.train.exponential_decay(0.01,
                                             self.global_step,
@@ -92,8 +83,8 @@ class ModelSkeleton:
             tf.summary.scalar('learning_rate', lr)
 
             tr_able_vars_list = tf.trainable_variables()
-            stn_tr_able_vars = [v for v in tr_able_vars_list if "st" in v.name]
-            other_tr_able_vars = [v for v in tr_able_vars_list if "st" not in v.name]
+            stn_tr_able_vars = [v for v in tr_able_vars_list if "St" in v.name]
+            other_tr_able_vars = [v for v in tr_able_vars_list if "St" not in v.name]
 
             # set another optimizer for optimize spatial transform module variables with smaller lr
             opt_ot = tf.train.MomentumOptimizer(learning_rate=lr, momentum=0.9)
@@ -129,7 +120,7 @@ class ModelSkeleton:
         )
         self.viz_op = tf.summary.image('image_input',
                                        self.image_to_show, collections='image_summary',
-                                       max_outputs=self.params.batchSize)
+                                       max_outputs=self.params.batch_size)
 
     def _conv_layer(
             self, layer_name, inputs, filters, size, stride, channels=None, padding='SAME',

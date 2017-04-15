@@ -3,9 +3,9 @@ import numpy as np
 import scipy.linalg
 
 def vec2mtx(pBatch, params):
-    batchSize = tf.shape(pBatch)[0]
-    O = tf.zeros([batchSize])
-    I = tf.ones([batchSize])
+    batch_size = tf.shape(pBatch)[0]
+    O = tf.zeros([batch_size])
+    I = tf.ones([batch_size])
     if params.warpType == "translation":
         tx, ty = tf.unstack(pBatch, axis=1)
         pMtrxBatch = tf.transpose(tf.stack([[I, O, tx],
