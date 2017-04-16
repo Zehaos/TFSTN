@@ -21,9 +21,9 @@ def train():
         saver = tf.train.Saver(tf.global_variables())
         tf_config = tf.ConfigProto(allow_soft_placement=True)
         tf_config.gpu_options.allow_growth = True
-        init = tf.global_variables_initializer()
+        init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
         sess = tf.Session(config=tf_config)
-        sess.run(init)
+        sess.run(init_op)
 
         initial_step = 0
         global_step = model.global_step
