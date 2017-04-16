@@ -33,10 +33,9 @@ class STN(ModelSkeleton):
             image = tf.cast(image, tf.float32)
             label = tf.one_hot(features['label'], 10)
             self.image_input, self.labels = tf.train.shuffle_batch(
-                [image, label], batch_size=self.params.batch_size, capacity=10000 + 3 * self.params.batch_size,
-                min_after_dequeue=10000
+                [image, label], batch_size=self.params.batch_size, capacity=10 * self.params.batch_size,
+                min_after_dequeue=self.params.batch_size
             )
-
 
     def _add_forward_graph(self):
         """NN architecture."""
