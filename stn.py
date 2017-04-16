@@ -18,7 +18,6 @@ class STN(ModelSkeleton):
             # init tfrecord reader
             self.reader = tf.TFRecordReader()
             self.filename_queue = tf.train.string_input_producer([self.params.tfrecordfile],
-                                                                 num_epochs=100,
                                                                  shuffle=True)
             _, serialized = self.reader.read(self.filename_queue)
             features = tf.parse_single_example(
@@ -33,6 +32,7 @@ class STN(ModelSkeleton):
             image = tf.reshape(tf.decode_raw(features['image_raw'], tf.uint8), [28, 28, 1])
             image = tf.cast(image, tf.float32)
             label = tf.one_hot(features['label'], 10)
+
             self.image_input, self.labels = tf.train.shuffle_batch(
                 [image, label], batch_size=self.params.batch_size, capacity=10 * self.params.batch_size,
                 min_after_dequeue=self.params.batch_size
